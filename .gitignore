@@ -1,0 +1,18 @@
+# Kiro IDE files
+.kiro/
+
+# Compiled executables
+*.exe
+*.out
+process_sim
+
+# Object files
+*.o
+*.obj
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
