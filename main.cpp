@@ -1,16 +1,16 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <thread>
-#include <mutex>
-#include <chrono>
-
-struct Process {
-    int pid;
-    int burstTime;
-};
+#include "ProcessSimulator.h"
 
 int main() {
+    ProcessSimulator procSim;
+    
+    // Test loading processes from file
+    if (!procSim.loadProcesses("processes.txt")) {
+        std::cerr << "Failed to load processes. Exiting." << std::endl;
+        return 1;
+    }
+    
+    std::cout << "Processes loaded successfully!" << std::endl;
+    
     return 0;
 }
