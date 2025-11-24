@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <thread>
+#include <chrono>
 
 ProcessSimulator::ProcessSimulator() {
     // Constructor - initialize member variables if needed
@@ -77,4 +79,29 @@ bool ProcessSimulator::loadProcesses(const std::string& filename) {
 void ProcessSimulator::log(const std::string& message) {
     std::lock_guard<std::mutex> lock(coutMutex);
     std::cout << message << std::endl;
+}
+
+void ProcessSimulator::processWorker(int pid, int burstTime, ProcessSimulator* sim) {
+    // Log process start
+    sim->log("[Process " + std::to_string(pid) + "] Started");
+    
+    // Simulate CPU burst time using sleep
+    std::this_thread::sleep_for(std::chrono::seconds(burstTime));
+    
+    // Log process finish
+    sim->log("[Process " + std::to_string(pid) + "] Finished (burst time: " + std::to_string(burstTime) + "s)");
+}
+
+void ProcessSimulator::executeProcesses() {
+    std::vector<std::thread> threads;
+    
+    // Create a thread for each process
+    for (const auto& process : processes) {
+        threads.push_back(std::thread(processWorker, process.pid, process.burstTime, this));
+    }
+    
+    // Wait for all threads to complete
+    for (auto& thread : threads) {
+        thread.join();
+    }
 }
