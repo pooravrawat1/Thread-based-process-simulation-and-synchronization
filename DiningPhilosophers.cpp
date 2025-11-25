@@ -93,3 +93,37 @@ void DiningPhilosophers::putdownForks(int id) {
     ss << "[Philosopher " << id << "] Released forks " << left << " and " << right;
     log(ss.str());
 }
+
+// Worker function for each philosopher thread
+void DiningPhilosophers::philosopherWorker(int id, DiningPhilosophers* sim) {
+    // Loop for multiple think-eat cycles based on iterations
+    for (int i = 0; i < sim->iterations; i++) {
+        sim->think(id);
+        sim->pickupForks(id);
+        sim->eat(id);
+        sim->putdownForks(id);
+    }
+    
+    std::stringstream ss;
+    ss << "[Philosopher " << id << "] Completed all iterations";
+    sim->log(ss.str());
+}
+
+// Start the simulation by creating 5 philosopher threads
+void DiningPhilosophers::simulate() {
+    std::cout << "\n=== Dining Philosophers Simulation ===" << std::endl;
+    
+    // Create 5 philosopher threads
+    std::thread philosophers[NUM_PHILOSOPHERS];
+    
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+        philosophers[i] = std::thread(philosopherWorker, i, this);
+    }
+    
+    // Wait for all philosophers to complete
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+        philosophers[i].join();
+    }
+    
+    std::cout << "\n=== All Philosophers Completed ===" << std::endl;
+}
