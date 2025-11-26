@@ -4,6 +4,7 @@
 #include <vector>
 #include <mutex>
 #include <string>
+#include <chrono>
 
 struct Process {
     int pid;
@@ -14,6 +15,7 @@ class ProcessSimulator {
 private:
     std::vector<Process> processes;
     std::mutex coutMutex;
+    std::chrono::steady_clock::time_point startTime;
 
 public:
     ProcessSimulator();
@@ -25,8 +27,11 @@ public:
     // Execute all process threads
     void executeProcesses();
     
-    // Thread-safe logging
+    // Thread-safe logging with timestamp
     void log(const std::string& message);
+    
+    // Get elapsed time since start
+    std::string getTimestamp();
 
 private:
     // Worker function for each process thread

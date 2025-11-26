@@ -4,9 +4,11 @@
 #include <sstream>
 #include <thread>
 #include <chrono>
+#include <iomanip>
 
 ProcessSimulator::ProcessSimulator() {
-    // Constructor - initialize member variables if needed
+    // Initialize start time for timestamp tracking
+    startTime = std::chrono::steady_clock::now();
 }
 
 ProcessSimulator::~ProcessSimulator() {
@@ -76,20 +78,35 @@ bool ProcessSimulator::loadProcesses(const std::string& filename) {
     return true;
 }
 
+std::string ProcessSimulator::getTimestamp() {
+    auto now = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime);
+    
+    double seconds = elapsed.count() / 1000.0;
+    
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(3) << seconds;
+    return oss.str();
+}
+
 void ProcessSimulator::log(const std::string& message) {
     std::lock_guard<std::mutex> lock(coutMutex);
-    std::cout << message << std::endl;
+    std::cout << "[" << getTimestamp() << "s] " << message << std::endl;
 }
 
 void ProcessSimulator::processWorker(int pid, int burstTime, ProcessSimulator* sim) {
     // Log process start
-    sim->log("[Process " + std::to_string(pid) + "] Started");
+    std::ostringstream ss;
+    ss << "PROCESS " << std::setw(3) << pid << " | Started (burst time: " << burstTime << "s)";
+    sim->log(ss.str());
     
     // Simulate CPU burst time using sleep
     std::this_thread::sleep_for(std::chrono::seconds(burstTime));
     
     // Log process finish
-    sim->log("[Process " + std::to_string(pid) + "] Finished (burst time: " + std::to_string(burstTime) + "s)");
+    ss.str("");
+    ss << "PROCESS " << std::setw(3) << pid << " | Finished";
+    sim->log(ss.str());
 }
 
 void ProcessSimulator::executeProcesses() {

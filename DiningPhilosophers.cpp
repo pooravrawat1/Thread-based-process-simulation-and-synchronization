@@ -4,9 +4,12 @@
 #include <chrono>
 #include <random>
 #include <sstream>
+#include <iomanip>
 
 // Constructor with configurable iterations parameter
 DiningPhilosophers::DiningPhilosophers(int iterations) : iterations(iterations) {
+    // Initialize start time for timestamp tracking
+    startTime = std::chrono::steady_clock::now();
     // Member variables are initialized:
     // - forks array (default constructed mutexes)
     // - coutMutex (default constructed)
@@ -23,16 +26,28 @@ int DiningPhilosophers::rightFork(int id) {
     return (id + 1) % NUM_PHILOSOPHERS;
 }
 
+// Get elapsed time since start
+std::string DiningPhilosophers::getTimestamp() {
+    auto now = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime);
+    
+    double seconds = elapsed.count() / 1000.0;
+    
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(3) << seconds;
+    return oss.str();
+}
+
 // Thread-safe logging method
 void DiningPhilosophers::log(const std::string& message) {
     std::lock_guard<std::mutex> lock(coutMutex);
-    std::cout << message << std::endl;
+    std::cout << "[" << getTimestamp() << "s] " << message << std::endl;
 }
 
 // Philosopher thinks for a random duration
 void DiningPhilosophers::think(int id) {
     std::stringstream ss;
-    ss << "[Philosopher " << id << "] Thinking...";
+    ss << "PHIL " << id << " | Thinking...";
     log(ss.str());
     
     // Random sleep duration between 1 and 3 seconds
@@ -54,26 +69,26 @@ void DiningPhilosophers::pickupForks(int id) {
     int secondFork = (left < right) ? right : left;
     
     std::stringstream ss;
-    ss << "[Philosopher " << id << "] Waiting for forks " << left << " and " << right;
+    ss << "PHIL " << id << " | Waiting for forks " << left << " and " << right;
     log(ss.str());
     
     // Acquire first fork
     forks[firstFork].lock();
     ss.str("");
-    ss << "[Philosopher " << id << "] Picked up fork " << firstFork;
+    ss << "PHIL " << id << " | Acquired fork " << firstFork;
     log(ss.str());
     
     // Acquire second fork
     forks[secondFork].lock();
     ss.str("");
-    ss << "[Philosopher " << id << "] Picked up fork " << secondFork;
+    ss << "PHIL " << id << " | Acquired fork " << secondFork;
     log(ss.str());
 }
 
 // Philosopher eats for a fixed duration
 void DiningPhilosophers::eat(int id) {
     std::stringstream ss;
-    ss << "[Philosopher " << id << "] Eating...";
+    ss << "PHIL " << id << " | Eating...";
     log(ss.str());
     
     // Eat for 2 seconds
@@ -90,7 +105,7 @@ void DiningPhilosophers::putdownForks(int id) {
     forks[right].unlock();
     
     std::stringstream ss;
-    ss << "[Philosopher " << id << "] Released forks " << left << " and " << right;
+    ss << "PHIL " << id << " | Released forks " << left << " and " << right;
     log(ss.str());
 }
 
@@ -98,6 +113,10 @@ void DiningPhilosophers::putdownForks(int id) {
 void DiningPhilosophers::philosopherWorker(int id, DiningPhilosophers* sim) {
     // Loop for multiple think-eat cycles based on iterations
     for (int i = 0; i < sim->iterations; i++) {
+        std::stringstream ss;
+        ss << "PHIL " << id << " | Starting cycle " << (i + 1) << " of " << sim->iterations;
+        sim->log(ss.str());
+        
         sim->think(id);
         sim->pickupForks(id);
         sim->eat(id);
@@ -105,14 +124,12 @@ void DiningPhilosophers::philosopherWorker(int id, DiningPhilosophers* sim) {
     }
     
     std::stringstream ss;
-    ss << "[Philosopher " << id << "] Completed all iterations";
+    ss << "PHIL " << id << " | Completed all " << sim->iterations << " iterations";
     sim->log(ss.str());
 }
 
 // Start the simulation by creating 5 philosopher threads
 void DiningPhilosophers::simulate() {
-    std::cout << "\n=== Dining Philosophers Simulation ===" << std::endl;
-    
     // Create 5 philosopher threads
     std::thread philosophers[NUM_PHILOSOPHERS];
     
@@ -124,6 +141,4 @@ void DiningPhilosophers::simulate() {
     for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
         philosophers[i].join();
     }
-    
-    std::cout << "\n=== All Philosophers Completed ===" << std::endl;
 }

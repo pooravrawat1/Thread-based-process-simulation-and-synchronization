@@ -2,6 +2,7 @@
 #define DINING_PHILOSOPHERS_H
 
 #include <mutex>
+#include <chrono>
 
 class DiningPhilosophers {
 private:
@@ -9,6 +10,7 @@ private:
     std::mutex forks[NUM_PHILOSOPHERS];
     std::mutex coutMutex;
     int iterations;
+    std::chrono::steady_clock::time_point startTime;
     
     // Helper methods to get fork indices
     int leftFork(int id);
@@ -21,8 +23,11 @@ public:
     // Start the simulation
     void simulate();
     
-    // Thread-safe logging
+    // Thread-safe logging with timestamp
     void log(const std::string& message);
+    
+    // Get elapsed time since start
+    std::string getTimestamp();
     
 private:
     // Worker function for each philosopher thread
